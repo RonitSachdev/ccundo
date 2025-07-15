@@ -12,6 +12,7 @@ import { OperationPreview } from '../src/core/OperationPreview.js';
 import { i18n } from '../src/i18n/i18n.js';
 import { UndoTracker } from '../src/core/UndoTracker.js';
 import { RedoManager } from '../src/core/RedoManager.js';
+import path from 'path';
 
 // Initialize i18n
 await i18n.init();
@@ -549,9 +550,11 @@ program
         
         console.log(chalk.bold('\nAvailable Claude Code sessions:\n'));
         
-        const currentDir = process.cwd();
+        const currentProjectDir = await parser.getCurrentProjectDir();
+        const currentProjectDirName = path.basename(currentProjectDir);
+
         sessions.forEach(session => {
-          const isCurrent = session.project === currentDir;
+          const isCurrent = session.rawProjectDir === currentProjectDirName;
           const marker = isCurrent ? chalk.green('→ ') : '  ';
           console.log(`${marker}${chalk.cyan(session.id)}`);
           console.log(`  Project: ${session.project}`);

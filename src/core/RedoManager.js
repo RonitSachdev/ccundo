@@ -1,10 +1,11 @@
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { OperationType } from './Operation.js';
 
 export class RedoManager {
   constructor() {
-    this.backupDir = path.join(process.env.HOME, '.ccundo', 'backups');
+    this.backupDir = path.join(os.homedir(), '.ccundo', 'backups');
   }
 
   async init() {

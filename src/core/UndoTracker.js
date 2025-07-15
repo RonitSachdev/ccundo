@@ -1,9 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 
 export class UndoTracker {
   constructor() {
-    this.undoFile = path.join(process.env.HOME, '.ccundo', 'undone-operations.json');
+    this.undoFile = path.join(os.homedir(), '.ccundo', 'undone-operations.json');
   }
 
   async init() {

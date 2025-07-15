@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { Operation, OperationType } from './Operation.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -11,7 +12,7 @@ export class SessionTracker {
   constructor(sessionId = null) {
     this.sessionId = sessionId || new Date().toISOString().replace(/[:.]/g, '-');
     this.operations = [];
-    this.sessionDir = path.join(process.env.HOME, '.ccundo', 'sessions');
+    this.sessionDir = path.join(os.homedir(), '.ccundo', 'sessions');
     this.sessionFile = path.join(this.sessionDir, `${this.sessionId}.json`);
   }
 
@@ -65,7 +66,7 @@ export class SessionTracker {
   }
 
   static async listSessions() {
-    const sessionDir = path.join(process.env.HOME, '.ccundo', 'sessions');
+    const sessionDir = path.join(os.homedir(), '.ccundo', 'sessions');
     try {
       const files = await fs.readdir(sessionDir);
       return files
@@ -80,7 +81,7 @@ export class SessionTracker {
   }
 
   static async getCurrentSession() {
-    const currentFile = path.join(process.env.HOME, '.ccundo', 'current-session');
+    const currentFile = path.join(os.homedir(), '.ccundo', 'current-session');
     try {
       const sessionId = await fs.readFile(currentFile, 'utf8');
       return sessionId.trim();
@@ -90,7 +91,7 @@ export class SessionTracker {
   }
 
   static async setCurrentSession(sessionId) {
-    const currentFile = path.join(process.env.HOME, '.ccundo', 'current-session');
+    const currentFile = path.join(os.homedir(), '.ccundo', 'current-session');
     await fs.mkdir(path.dirname(currentFile), { recursive: true });
     await fs.writeFile(currentFile, sessionId);
   }

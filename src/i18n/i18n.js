@@ -1,11 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { languages } from './languages.js';
 
 class I18n {
   constructor() {
     this.currentLanguage = 'en';
-    this.configFile = path.join(process.env.HOME, '.ccundo', 'config.json');
+    this.configFile = path.join(os.homedir(), '.ccundo', 'config.json');
   }
 
   async init() {
