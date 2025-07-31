@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { Operation, OperationType } from './Operation.js';
@@ -7,30 +8,25 @@ import { UndoTracker } from './UndoTracker.js';
 
 export class ClaudeSessionParser {
   constructor() {
-    this.claudeProjectsDir = path.join(process.env.HOME, '.claude', 'projects');
+    this.claudeProjectsDir = path.join(os.homedir(), '.claude', 'projects');
   }
 
   async getCurrentProjectDir() {
     const cwd = process.cwd();
-    // Replace all forward slashes, spaces, and dots with dashes
-    const safePath = cwd.replace(/[\s\/.]/g, '-');
-    const projectPath = path.join(this.claudeProjectsDir, safePath);
+    let safePath;
     
-    // If the exact path doesn't exist, try legacy format (Web-Game instead of Web_Game)
-    try {
-      await fs.stat(projectPath);
-      return projectPath;
-    } catch (error) {
-      // Try the legacy format where Web_Game was Web-Game
-      const legacyPath = safePath.replace(/Web_Game/g, 'Web-Game');
-      const legacyProjectPath = path.join(this.claudeProjectsDir, legacyPath);
-      try {
-        await fs.stat(legacyProjectPath);
-        return legacyProjectPath;
-      } catch (legacyError) {
-        return projectPath; // Return original path if neither exists
-      }
+    // Claude uses different formats for different operating systems
+    if (process.platform === 'win32') {
+      // Windows: C:\Users\... → C--Users-...
+      safePath = cwd.replace(/:[\\\/]/g, '--')
+                     .replace(/[\\/]/g, '-')
+                     .replace(/[\s_.]/g, '-');
+    } else {
+      // Linux/macOS: /home/... → -home-...
+      safePath = cwd.replace(/[\s\/_\.]/g, '-');
     }
+    
+    return path.join(this.claudeProjectsDir, safePath);
   }
 
   async getCurrentSessionFile() {
@@ -209,10 +205,23 @@ export class ClaudeSessionParser {
           
           for (const sessionFile of sessionFiles) {
             const sessionId = sessionFile.replace('.jsonl', '');
-            // Convert back to proper path - first dash is root, rest are slashes
+            // Convert back to proper path - reverse the Claude encoding
+            let projectPath = projectDir;
+            
+            if (process.platform === 'win32') {
+              // Windows: C--Users-... → C:\Users\...
+              projectPath = projectPath.replace(/--/g, ':\\');
+              projectPath = projectPath.replace(/-/g, '\\');
+            } else {
+              // Linux/macOS: -home-... → /home/...
+              projectPath = projectPath.replace(/^-/, '/');
+              projectPath = projectPath.replace(/-/g, '/');
+            }
+            
             sessions.push({
               id: sessionId,
-              project: projectDir, // 直接使用存储的目录名
+              project: projectPath, // Decoded path for display
+              rawProjectDir: projectDir, // Raw directory name for comparison
               file: path.join(fullPath, sessionFile)
             });
           }
