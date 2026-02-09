@@ -208,12 +208,13 @@ export class ClaudeSessionParser {
             // Convert back to proper path - reverse the Claude encoding
             let projectPath = projectDir;
             
-            if (process.platform === 'win32') {
-              // Windows: C--Users-... → C:\Users\...
-              projectPath = projectPath.replace(/--/g, ':\\');
+            if (process.platform === 'win32' && /^[A-Z]--/.test(projectDir)) {
+              // Windows drive path: C--Users-... → C:\Users\...
+              projectPath = projectPath.replace(/^([A-Z])--/, '$1:\\');
               projectPath = projectPath.replace(/-/g, '\\');
             } else {
-              // Linux/macOS: -home-... → /home/...
+              // Unix or UNC/WSL path: --wsl-... → //wsl/... or -home-... → /home/...
+              projectPath = projectPath.replace(/^--/, '//');
               projectPath = projectPath.replace(/^-/, '/');
               projectPath = projectPath.replace(/-/g, '/');
             }
