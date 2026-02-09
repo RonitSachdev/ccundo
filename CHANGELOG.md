@@ -131,6 +131,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maintains backward compatibility with existing functionality
 - All ccundo commands now work properly in directories containing underscores
 
+## [1.1.2] - 2026-02-08
+
+### Fixed
+- **Windows session path decoding**: Fix `getAllSessions()` incorrectly decoding UNC/WSL paths (e.g. `--wsl-localhost-...` was decoded as `:\wsl\...` instead of `//wsl/...`)
+- The `--` prefix is now only treated as a drive letter (`C:\`) when preceded by `[A-Z]`; otherwise it's treated as a UNC path prefix (`//`)
+
+### Note
+- PR #6 cross-platform fix (os.homedir, Windows path encoding) was merged to main but never published to npm — this release includes those fixes plus the UNC path decode fix above
+
 ## [Unreleased]
 
 ### Planned Features
